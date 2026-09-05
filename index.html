@@ -178,6 +178,11 @@ async function draw() {
 try{
 const masks=KNOTS[knot].masks;
 const first=await image(masks[0]);
+document.getElementById("debug").innerHTML +=
+    "\nBreite: " + first.width +
+    "\nHöhe: " + first.height + "\n";
+
+	
 canvas.width=first.naturalWidth||first.width;
 canvas.height=first.naturalHeight||first.height;
 ctx.clearRect(0,0,canvas.width,canvas.height);
