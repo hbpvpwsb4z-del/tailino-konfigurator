@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tailino – Farbkonfigurator</title>
+<style>
+body{margin:0;background:#FAF7F2;color:#333;font-family:Arial,sans-serif}
+main{max-width:850px;margin:auto;padding:24px 16px}
+h1{text-align:center;font-family:Georgia,serif;font-weight:normal;margin-bottom:4px}
+.sub{text-align:center;opacity:.7;margin-top:0}
+.card{background:white;padding:20px;border-radius:18px;margin:18px 0;box-shadow:0 4px 18px #0001}
+button{padding:11px 18px;border-radius:11px;border:1px solid #ccc;background:white;cursor:pointer}
+button.active{background:#B99A98;color:white;border-color:#B99A98}
+.buttons{display:flex;gap:10px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
+label{display:block;font-weight:bold;margin-bottom:6px}
+select{width:100%;padding:10px;border:1px solid #ccc;border-radius:9px;background:white}
+canvas{display:block;max-width:100%;height:auto;margin:auto;background:#f2eee9;border-radius:12px}
+.err{color:#9a3333;font-size:13px;white-space:pre-line}
+@media(max-width:600px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+    <div id="debug" style="
+background:#fff3f3;
+color:#a00000;
+padding:10px;
+margin:10px;
+border:1px solid #ffbcbc;
+font-size:12px;
+white-space:pre-wrap;
+"></div>
+
+<h1>Tailino</h1>
+<p class="sub">Handgemacht für Mensch &amp; Tier</p>
+
+<section class="card">
+<h2>Knoten</h2>
+<div class="buttons">
+<button id="basis" class="active">Basis</button>
+<button id="herzchen">Herzchen</button>
+</div>
+<div id="selectors" class="grid"></div>
+</section>
+
+<section class="card">
+<h2 id="title">Basis</h2>
+<canvas id="preview"></canvas>
+<p>Wähle die Farben aus. Die Vorschau wird automatisch aktualisiert.</p>
+</section>
+</main>
+
+<script>
+
+window.onerror = function(msg, source, line, col, error) {
+  document.getElementById("debug").innerHTML +=
+    "FEHLER:\n" + msg +
+    "\nZeile: " + line +
+    "\n\n";
+};
+
+// ===== FARBEN HIER SELBST ERGÄNZEN =====
+const COLORS=[
+{name:"Schwarz",hex:"#171717"},
+{name:"Anthrazit",hex:"#333333"},
+{name:"Creme",hex:"#F5EEE4"},
+{name:"Sand",hex:"#D9C3AA"},
+{name:"Rosé",hex:"#B99A98"},
+{name:"Weiß",hex:"#FFFFFF"},
+{name:"Rot",hex:"#9E3030"},
+{name:"Bordeaux",hex:"#641F2A"},
+{name:"Rosa",hex:"#D89AAE"},
+{name:"Pink",hex:"#C85A91"},
+{name:"Lila",hex:"#76558F"},
+{name:"Dunkelblau",hex:"#243A68"},
+{name:"Hellblau",hex:"#8DB8D8"},
+{name:"Petrol",hex:"#286A6A"},
+{name:"Grün",hex:"#4E7655"},
+{name:"Salbei",hex:"#AAB8A0"},
+{name:"Gelb",hex:"#E1C24A"},
+{name:"Orange",hex:"#D97932"}
+];
+
+// ===== DEINE MASKEN =====
+const KNOTS={
+basis:{
+name:"Basis",max:2,
+masks:["basis_mask1.png","basis_mask2.png"]
+
+},
+herzchen:{
+name:"Herzchen",max:3,
+masks:["images/herzchen_mask1.png","images/herzchen_mask2.png","images/herzchen_mask3.png"]
+
+}
+};
+
+let knot="basis";
+let colors=[COLORS[0].hex,COLORS[3].hex,""];
+const canvas=document.getElementById("preview");
+const ctx=canvas.getContext("2d");
+
+
+function rgb(hex){
+hex=hex.replace("#","");
+return[
+parseInt(hex.slice(0,2),16),
+parseInt(hex.slice(2,4),16),
+parseInt(hex.slice(4,6),16)
+];
+}
+
+function image(src){
+    return new Promise((resolve,reject)=>{
+        const img=new Image();
+
+        img.onload=()=>resolve(img);
+
+        img.onerror=()=>{
+            document.getElementById("debug").innerHTML +=
+            "Nicht gefunden: " + img.src + "\n";
+
+            reject("Bild nicht gefunden: " + src);
+        };
+
+        img.src=src;
+    });
+}
+
+
+
+async function paintMask(src,color,w,h){
+const im=await image(src);
+const c=document.createElement("canvas");
+c.width=w;c.height=h;
+const x=c.getContext("2d");
+x.drawImage(im,0,0,w,h);
+const d=x.getImageData(0,0,w,h);
+const r=rgb(color);
+for(let p=0;p<d.data.length;p+=4){
+const b=(d.data[p]+d.data[p+1]+d.data[p+2])/765;
+d.data[p]=r[0]*b;
+d.data[p+1]=r[1]*b;
+d.data[p+2]=r[2]*b;
+}
+x.putImageData(d,0,0);
+return c;
+}
+
+function makeSelectors(){
+const box=document.getElementById("selectors");
+box.innerHTML="";
+for(let n=0;n<KNOTS[knot].max;n++){
+const wrap=document.createElement("div");
+const label=document.createElement("label");
+label.textContent="Farbe "+(n+1);
+const sel=document.createElement("select");
+if(n>0){
+const o=document.createElement("option");
+o.value="";o.textContent="Keine Farbe";sel.appendChild(o);
+}
+COLORS.forEach(c=>{
+const o=document.createElement("option");
+o.value=c.hex;o.textContent=c.name;sel.appendChild(o);
+});
+sel.value=colors[n]||"";
+sel.onchange=()=>{colors[n]=sel.value;draw()};
+wrap.append(label,sel);box.appendChild(wrap);
+}
+}
+
+async function draw() {
+
+    document.getElementById("debug").innerHTML = "";
+
+    try {
+
+        const masks = KNOTS[knot].masks;
+
+        document.getElementById("debug").innerHTML +=
+            "Lade: " + masks[0] + "\n";
+
+        const first = await image(masks[0]);
+
+        document.getElementById("debug").innerHTML +=
+            "Bild gefunden\n";
+
+        canvas.width = first.width;
+        canvas.height = first.height;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        for(let n=0; n<masks.length; n++){
+
+            if(!colors[n]) continue;
+
+            const layer = await paintMask(
+                masks[n],
+                colors[n],
+                canvas.width,
+                canvas.height
+            );
+
+            ctx.drawImage(layer,0,0);
+        }
+
+    } catch(err) {
+
+        document.getElementById("debug").innerHTML +=
+            "FEHLER:\n" + err;
+
+        console.error(err);
+    }
+}
+
+    
+
+
+function choose(k){
+knot=k;
+document.getElementById("basis").classList.toggle("active",k==="basis");
+document.getElementById("herzchen").classList.toggle("active",k==="herzchen");
+
+document.getElementById("title").textContent=KNOTS[k].name;
+makeSelectors();
+draw();
+}
+document.getElementById("basis").onclick=()=>choose("basis");
+document.getElementById("herzchen").onclick=()=>choose("herzchen");
+
+console.log("Script gestartet");
+
+makeSelectors();
+draw();
+</script>
+</body>
+</html>
