@@ -175,46 +175,23 @@ async function draw() {
 
     document.getElementById("debug").innerHTML = "";
 
-    try {
-
-        const masks = KNOTS[knot].masks;
-
-        document.getElementById("debug").innerHTML +=
-            "Lade: " + masks[0] + "\n";
-
-        const first = await image(masks[0]);
-
-        document.getElementById("debug").innerHTML +=
-            "Bild gefunden\n";
-
-        canvas.width = first.width;
-        canvas.height = first.height;
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        for(let n=0; n<masks.length; n++){
-
-            if(!colors[n]) continue;
-
-            const layer = await paintMask(
-                masks[n],
-                colors[n],
-                canvas.width,
-                canvas.height
-            );
-
-            ctx.drawImage(layer,0,0);
-        }
-
-    } catch(err) {
-
-        document.getElementById("debug").innerHTML +=
-            "FEHLER:\n" + err;
-
-        console.error(err);
-    }
+try{
+const masks=KNOTS[knot].masks;
+const first=await image(masks[0]);
+canvas.width=first.naturalWidth||first.width;
+canvas.height=first.naturalHeight||first.height;
+ctx.clearRect(0,0,canvas.width,canvas.height);
+for(let n=0;n<masks.length;n++){
+if(colors[n]){
+const layer=await paintMask(masks[n],colors[n],canvas.width,canvas.height);
+ctx.drawImage(layer,0,0);
+	}
 }
-
+}
+catch(err){
+	console.error(err)
+}
+}
     
 
 
