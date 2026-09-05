@@ -92,7 +92,7 @@ masks:["basis_base.png","basis_mask1.png","basis_mask2.png"]
 },
 herzchen:{
 name:"Herzchen",max:3,
-masks:["herzchen_mask1.png","herzchen_mask2.png","herzchen_mask3.png"]
+masks:["herzchen_base.png","herzchen_mask1.png","herzchen_mask2.png","herzchen_mask3.png"]
 
 }
 };
@@ -175,28 +175,44 @@ async function draw() {
 
     document.getElementById("debug").innerHTML = "";
 
-try{
-const masks=KNOTS[knot].masks;
-const first=await image(masks[0]);
-document.getElementById("debug").innerHTML +=
-    "\nBreite: " + first.width +
-    "\nHöhe: " + first.height + "\n";
+    try {
 
-	
-canvas.width=first.naturalWidth||first.width;
-canvas.height=first.naturalHeight||first.height;
-ctx.clearRect(0,0,canvas.width,canvas.height);
-for(let n=0;n<masks.length;n++){
-if(colors[n]){
-const layer=await paintMask(masks[n],colors[n],canvas.width,canvas.height);
-ctx.drawImage(layer,0,0);
-	}
+        const masks = KNOTS[knot].masks;
+
+        const base = await image(masks[0]);
+
+        canvas.width = base.width;
+        canvas.height = base.height;
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        // Grundbild zeichnen
+        ctx.drawImage(base,0,0);
+
+        // Masken einfärben
+        for(let n=1;n<masks.length;n++){
+
+            if(!colors[n-1]) continue;
+
+            const layer = await paintMask(
+                masks[n],
+                colors[n-1],
+                canvas.width,
+                canvas.height
+            );
+
+            ctx.drawImage(layer,0,0);
+        }
+
+    } catch(err) {
+
+        document.getElementById("debug").innerHTML =
+            "FEHLER:\n" + err;
+
+        console.error(err);
+    }
 }
-}
-catch(err){
-	console.error(err)
-}
-}
+
     
 
 
