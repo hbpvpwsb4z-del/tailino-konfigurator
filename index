@@ -92,7 +92,7 @@ masks:["basis_mask1.png","basis_mask2.png"]
 },
 herzchen:{
 name:"Herzchen",max:3,
-masks:["images/herzchen_mask1.png","images/herzchen_mask2.png","images/herzchen_mask3.png"]
+masks:["herzchen_mask1.png","herzchen_mask2.png","herzchen_mask3.png"]
 
 }
 };
