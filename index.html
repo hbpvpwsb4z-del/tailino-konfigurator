@@ -207,6 +207,25 @@ async function draw() {
         ctx.drawImage(base,0,0);
 
         // Masken einfärben
+
+        for(let p=0;p<d.data.length;p+=4){
+
+    if(
+        d.data[p] > 245 &&
+        d.data[p+1] > 245 &&
+        d.data[p+2] > 245
+    ){
+        d.data[p+3] = 0;
+        continue;
+    }
+
+    const b=(d.data[p]+d.data[p+1]+d.data[p+2])/765;
+
+    d.data[p]=r[0]*b;
+    d.data[p+1]=r[1]*b;
+    d.data[p+2]=r[2]*b;
+}
+
         for(let n=1;n<masks.length;n++){
 
             if(!colors[n-1]) continue;
