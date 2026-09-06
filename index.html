@@ -86,19 +86,36 @@ const COLORS=[
 // ===== DEINE MASKEN =====
 const KNOTS={
 basis:{
-name:"Basis",max:2,
-masks:["basis_base.png","basis_mask1.png","basis_mask2.png"]
-
+name:"Basis",
+    max:3,
+masks:[
+    "basis_base.png",
+    "basis_mask1.png",
+    "basis_mask2.png",
+    "basis_mask3.png"
+]
 },
 herzchen:{
-name:"Herzchen",max:3,
-masks:["herzchen_base.png","herzchen_mask1.png","herzchen_mask2.png","herzchen_mask3.png"]
-
+name:"Herzchen",
+    max:4,
+masks:["herzchen_base.png",
+       "herzchen_mask1.png",
+       "herzchen_mask2.png",
+       "herzchen_mask3.png",
+       "herzchen_mask4.png"
+      ]
 }
 };
 
 let knot="basis";
-let colors=[COLORS[0].hex,COLORS[3].hex,""];
+
+let colors=[
+    COLORS[0].hex,
+    COLORS[3].hex,
+    COLORS[5].hex,
+    COLORS[1].hex
+];
+
 const canvas=document.getElementById("preview");
 const ctx=canvas.getContext("2d");
 
@@ -213,25 +230,47 @@ async function draw() {
     }
 }
 
-    
-
-
 function choose(k){
-knot=k;
-document.getElementById("basis").classList.toggle("active",k==="basis");
-document.getElementById("herzchen").classList.toggle("active",k==="herzchen");
 
-document.getElementById("title").textContent=KNOTS[k].name;
-makeSelectors();
-draw();
+    knot = k;
+
+    if(k === "basis"){
+        colors = [
+            COLORS[0].hex,
+            COLORS[3].hex,
+            COLORS[5].hex
+        ];
+    } else {
+        colors = [
+            COLORS[0].hex,
+            COLORS[3].hex,
+            COLORS[5].hex,
+            COLORS[1].hex
+        ];
+    }
+
+    document.getElementById("basis")
+        .classList.toggle("active", k === "basis");
+
+    document.getElementById("herzchen")
+        .classList.toggle("active", k === "herzchen");
+
+    document.getElementById("title").textContent =
+        KNOTS[k].name;
+
+    makeSelectors();
+    draw();
 }
-document.getElementById("basis").onclick=()=>choose("basis");
-document.getElementById("herzchen").onclick=()=>choose("herzchen");
+
+document.getElementById("basis").onclick = () => choose("basis");
+document.getElementById("herzchen").onclick = () => choose("herzchen");
 
 console.log("Script gestartet");
 
 makeSelectors();
 draw();
+
+    
 </script>
 </body>
 </html>
